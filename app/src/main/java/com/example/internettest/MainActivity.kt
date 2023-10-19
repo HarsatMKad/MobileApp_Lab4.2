@@ -4,6 +4,8 @@ import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Button
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import java.io.IOException
 import java.io.InputStreamReader
 import java.net.HttpURLConnection
@@ -25,6 +27,28 @@ class MainActivity : AppCompatActivity() {
                 val content = getContent((url))
                 if (content != null) {
                     Log.d("Flickr cats", content)
+                }
+            }
+        }
+
+        val okButton = findViewById<Button>(R.id.btnOkHTTP)
+        okButton.setOnClickListener{
+            thread {
+                val client = OkHttpClient()
+                val request = Request.Builder()
+                    .url("https://api.flickr.com/services/rest/?method=flickr.photos.search&api_key=ff49fcd4d4a08aa6aafb6ea3de826464&tags=cat&format=json&nojsoncallback=1")
+                    .build()
+                try {
+                    client.newCall(request).execute().use { response ->
+                        if (!response.isSuccessful) {
+                            throw IOException("Запрос к серверу не был успешен:" +
+                                    " ${response.code} ${response.message}")
+                        }
+                        val content = response.body!!.string()
+                        Log.i("Flickr OkCats", content)
+                    }
+                } catch (e: IOException) {
+                    println("Ошибка подключения: $e");
                 }
             }
         }
